@@ -1,0 +1,54 @@
+name: Sync Project Docs to Nop Community
+
+on:
+  workflow_call:
+    inputs:
+      source:
+        description: Relative path that docs located in
+        default: docs
+        required: false
+        type: string
+      repo:
+        description: Name of repo on Nop Platform organization
+        required: true
+        type: string
+    secrets:
+      token:
+        description: PAT
+        required: true
+
+jobs:
+  sync-project-docs-to-nop-community:
+    runs-on: ubuntu-latest
+    env:
+      NOP_PROJECT_DOCS_SRC_REPO: ${{ github.repository }}
+      NOP_PROJECT_DOCS_SRC_DIR: ${{ inputs.source }}
+      NOP_PROJECT_DOCS_DIST_REPO: nop-platform/${{ inputs.repo }}
+    steps:
+      - name: Create temp dirs
+        run: mkdir docs-src docs-dist
+      - uses: actions/checkout@v3
+        with:
+          path: docs-src
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ env.NOP_PROJECT_DOCS_DIST_REPO }}
+          persist-credentials: false
+          path: docs-dist
+      - name: Copy docs
+        run: |
+          rm -rf docs-dist/src
+          mv docs-src/$NOP_PROJECT_DOCS_SRC_DIR docs-dist/src
+      - name: Commit changes
+        run: |
+          cd docs-dist
+          git config --local user.email "nop-assistant+project-docs-syncer@domain.does-not.exist"
+          git config --local user.name "Nop Assistant"
+          git add .
+          git commit -m "docs: synced via GitHub Actions"
+      - uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.token }}
+          repository: ${{ env.NOP_PROJECT_DOCS_DIST_REPO }}
+          directory: docs-dist
+          force: true
