@@ -42,7 +42,7 @@ jobs:
       - name: Commit changes
         run: |
           cd docs-dist
-          git config --local user.email "nop-assistant+project-docs-syncer@domain.does-not.exist"
+          git config --local user.email "nopentropy@gmail.com"
           git config --local user.name "Nop Assistant"
           git add .
           git commit -m "docs: synced via GitHub Actions"
